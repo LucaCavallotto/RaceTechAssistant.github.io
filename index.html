@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LC • Race Tech Assistant</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/styles.css">
+  <script src="assets/app.js" defer></script>
+</head>
+<body>
+  <header>
+    <nav class="nav" aria-label="Primary">
+      <div class="brand"><span class="brand-dot"></span> <span>LC • Race Tech Assistant</span></div>
+      <div class="actions">
+        <div class="segmented" role="group" aria-label="Units">
+          <button id="u-metric" aria-pressed="true">Metric</button>
+          <button id="u-imperial" aria-pressed="false">Imperial</button>
+        </div>
+        <button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌓</button>
+      </div>
+    </nav>
+  </header>
+
+  <main>
+    <!-- Segmented Tabs ABOVE title -->
+    <div class="segmented-wrap" role="tablist" aria-label="Tool selector">
+      <div class="segmented">
+        <button id="tab-fuel" role="tab" aria-selected="true" aria-controls="panel-fuel">Fuel</button>
+        <button id="tab-temp" role="tab" aria-selected="false" aria-controls="panel-temp">Pressures</button>
+        <button id="tab-brake" role="tab" aria-selected="false" aria-controls="panel-brake">Brake Ducts</button>
+      </div>
+    </div>
+
+    <h1 id="pageTitle" class="page-title">Fuel Calculator</h1>
+    <p id="pageDesc" class="page-desc">Enter race time and lap pace (or fixed laps), then Calculate. Use Pro for tank size, formation/cool‑down laps, and mandatory pitstops.</p>
+
+    <section class="grid">
+      <!-- Fuel panel -->
+      <article id="panel-fuel" role="tabpanel" aria-labelledby="tab-fuel" class="card" tabindex="0">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <h3 style="margin:0">Fuel</h3>
+          <div class="mode-toggle" role="group" aria-label="Mode">
+            <button id="mode-normal" aria-pressed="true">Normal</button>
+            <button id="mode-pro" aria-pressed="false">Pro</button>
+          </div>
+        </div>
+
+        <!-- NORMAL FORM -->
+        <div id="fuel-form-normal" class="split" aria-hidden="false">
+          <div class="col-6">
+            <label>Total race time</label>
+            <div class="row">
+              <div class="col-6"><div class="input"><input id="raceH" type="number" min="0" placeholder="01"><span class="unit">hrs</span></div></div>
+              <div class="col-6"><div class="input"><input id="raceM" type="number" min="0" placeholder="30"><span class="unit">mins</span></div></div>
+            </div>
+          </div>
+          <div class="col-6">
+            <label>Average lap time</label>
+            <div class="row">
+              <div class="col-6"><div class="input"><input id="lapM" type="number" min="0" placeholder="01"><span class="unit">mins</span></div></div>
+              <div class="col-6"><div class="input"><input id="lapS" type="number" min="0" step="0.1" placeholder="40.5"><span class="unit">secs</span></div></div>
+            </div>
+          </div>
+          <div class="col-6"><label>Fuel per lap</label><div class="input"><input id="fuelLap" type="number" min="0" step="0.01" placeholder="2.45"><span class="unit" data-u="volume">L</span></div></div>
+          <div class="col-6"><label>Fixed total laps (optional)</label><div class="input"><input id="lapsFixed" type="number" min="0" placeholder="0"><span class="unit">laps</span></div></div>
+        </div>
+
+        <!-- PRO FORM (hidden by default) -->
+        <div id="fuel-form-pro" class="split" aria-hidden="true" style="display:none">
+          <div class="col-6">
+            <label>Total race time</label>
+            <div class="row">
+              <div class="col-6"><div class="input"><input id="raceH_p" type="number" min="0" placeholder="01"><span class="unit">hrs</span></div></div>
+              <div class="col-6"><div class="input"><input id="raceM_p" type="number" min="0" placeholder="30"><span class="unit">mins</span></div></div>
+            </div>
+          </div>
+          <div class="col-6">
+            <label>Average lap time</label>
+            <div class="row">
+              <div class="col-6"><div class="input"><input id="lapM_p" type="number" min="0" placeholder="01"><span class="unit">mins</span></div></div>
+              <div class="col-6"><div class="input"><input id="lapS_p" type="number" min="0" step="0.1" placeholder="40.5"><span class="unit">secs</span></div></div>
+            </div>
+          </div>
+          <div class="col-6"><label>Fuel per lap</label><div class="input"><input id="fuelLap_p" type="number" min="0" step="0.01" placeholder="2.45"><span class="unit" data-u="volume">L</span></div></div>
+          <div class="col-6"><label>Tank capacity</label><div class="input"><input id="tank_p" type="number" min="0" placeholder="120"><span class="unit" data-u="volume">L</span></div></div>
+          <div class="col-6"><label>Fixed total laps (optional)</label><div class="input"><input id="lapsFixed_p" type="number" min="0" placeholder="0"><span class="unit">laps</span></div></div>
+          <div class="col-6"><label>Mandatory pitstops</label><div class="input"><input id="mandStops" type="number" min="0" step="1" placeholder="0"><span class="unit">stops</span></div></div>
+          <div class="col-6"><label><input id="includeFormation" type="checkbox" checked style="margin-right:8px">Include formation lap</label></div>
+          <div class="col-6"><label><input id="includeCooldown" type="checkbox" checked style="margin-right:8px">Include cool‑down lap</label></div>
+        </div>
+
+        <div class="btns">
+          <button class="primary" id="btnFuel">Calculate fuel</button>
+          <button class="secondary" id="btnFuelReset">Reset</button>
+        </div>
+
+        <!-- BIG callout: Start fuel -->
+        <div id="fuel-callout" class="big-callout" aria-live="polite">
+          <h4>Put in the tank</h4>
+          <div class="liters"><span id="start-fuel">0.0</span> <span data-u="volume">L</span></div>
+        </div>
+
+        <!-- RESULTS (hidden until Calculate) -->
+        <div id="fuel-stats1" class="stats" role="group" aria-label="Fuel summary" style="display:none">
+          <div class="stat"><strong><span id="stat-pits">0</span></strong><small>Pitstops (calc)</small></div>
+          <div class="stat"><strong><span id="stat-laps">0</span> <span class="unit-inline">laps</span></strong><small>Total</small></div>
+          <div class="stat"><strong><span id="stat-stintlaps">0</span> <span class="unit-inline">laps</span></strong><small>Per Stint</small></div>
+          <div class="stat"><strong><span id="stat-finallaps">0</span> <span class="unit-inline">laps</span></strong><small>Final Stint</small></div>
+        </div>
+        <div id="fuel-stats2" class="stats" role="group" aria-label="Fuel litres" style="display:none">
+          <div class="stat"><strong><span id="stat-fuel-total">0</span> <span class="unit-inline" data-u="volume">L</span></strong><small>Total (adj.)</small></div>
+          <div class="stat"><strong><span id="stat-fuel-stint">0</span> <span class="unit-inline" data-u="volume">L</span></strong><small>Per Stint</small></div>
+          <div class="stat"><strong><span id="stat-fuel-final">0</span> <span class="unit-inline" data-u="volume">L</span></strong><small>Final Stint</small></div>
+          <div class="stat"><strong><span id="stat-buffer">1</span> <span class="unit-inline" data-u="volume">L</span></strong><small>Suggested Buffer</small></div>
+        </div>
+        <div class="btns" id="fuel-copy-wrap" style="display:none">
+          <button class="secondary" id="btnFuelCopy">Copy summary</button>
+          <span id="copyToast" class="ok" style="display:none">Copied!</span>
+        </div>
+        <div id="outFuel" class="result" role="status" aria-live="polite"></div>
+      </article>
+
+      <!-- Pressure (temperature) -->
+      <article id="panel-temp" role="tabpanel" aria-labelledby="tab-temp" class="card" hidden tabindex="0">
+        <h3>Tyre Pressure from Ambient Temperature</h3>
+
+        <div class="tyre-grid" aria-label="Tyre pressures in car layout">
+          <div class="tyre-fr">
+            <label>FR (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="pFR" type="number" min="0" step="0.01" placeholder="25.8"></div>
+          </div>
+          <div class="tyre-fl">
+            <label>FL (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="pFL" type="number" min="0" step="0.01" placeholder="25.8"></div>
+          </div>
+          <div class="tyre-rl">
+            <label>RL (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="pRL" type="number" min="0" step="0.01" placeholder="25.2"></div>
+          </div>
+          <div class="tyre-rr">
+            <label>RR (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="pRR" type="number" min="0" step="0.01" placeholder="25.2"></div>
+          </div>
+        </div>
+        <div class="car-hint">Top row is front axle (FR | FL), bottom row is rear axle (RL | RR). FL is <strong>top‑right</strong> as requested.</div>
+
+        <div class="split" style="margin-top:12px">
+          <div class="col-6"><label>Ambient before</label><div class="input"><input id="tBefore" type="number" step="0.1" placeholder="20"><span class="unit" data-u="temp">°C</span></div></div>
+          <div class="col-6"><label>Ambient after</label><div class="input"><input id="tAfter" type="number" step="0.1" placeholder="28"><span class="unit" data-u="temp">°C</span></div></div>
+          <div class="col-6"><label>Target min (optional)</label><div class="input"><input id="targetMin" type="number" step="0.01" placeholder="26.0"><span class="unit" data-u="pressure">psi</span></div></div>
+          <div class="col-6"><label>Target max (optional)</label><div class="input"><input id="targetMax" type="number" step="0.01" placeholder="27.4"><span class="unit" data-u="pressure">psi</span></div></div>
+        </div>
+        <div class="btns">
+          <button class="primary" id="btnTemp">Calculate pressures</button>
+          <button class="secondary" id="btnTempReset">Reset</button>
+        </div>
+
+        <!-- RESULTS (hidden until Calculate) -->
+        <div id="temp-stats" class="stats" role="group" aria-label="Pressure preview" style="display:none">
+          <div class="stat"><strong><span id="t-delta">0</span> <span data-u="temp">°C</span></strong><small>Δ Temperature</small></div>
+          <div class="stat"><strong><span id="p-delta">0.00</span> <span data-u="pressure">psi</span></strong><small>Δ Pressure / tyre</small></div>
+          <div class="stat"><strong><span id="target-range">–</span></strong><small>Target Window</small></div>
+          <div class="stat"><strong><span id="press-ok">–</span></strong><small>Status</small></div>
+        </div>
+        <div id="temp-tyre-grid" class="tyre-grid" style="display:none">
+          <div class="tyre-fr stat"><strong><span id="tp-fr">0.00</span> <span data-u="pressure">psi</span></strong><small>FR</small></div>
+          <div class="tyre-fl stat"><strong><span id="tp-fl">0.00</span> <span data-u="pressure">psi</span></strong><small>FL</small></div>
+          <div class="tyre-rl stat"><strong><span id="tp-rl">0.00</span> <span data-u="pressure">psi</span></strong><small>RL</small></div>
+          <div class="tyre-rr stat"><strong><span id="tp-rr">0.00</span> <span data-u="pressure">psi</span></strong><small>RR</small></div>
+        </div>
+        <div id="outTemp" class="result" role="status" aria-live="polite"></div>
+      </article>
+
+      <!-- Brake ducts -->
+      <article id="panel-brake" role="tabpanel" aria-labelledby="tab-brake" class="card" hidden tabindex="0">
+        <h3>Tyre Pressure from Brake Duct Settings</h3>
+
+        <div class="tyre-grid" aria-label="Brake duct pressures in car layout">
+          <div class="tyre-fr">
+            <label>FR (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="bFR" type="number" min="0" step="0.01" placeholder="25.8"></div>
+          </div>
+          <div class="tyre-fl">
+            <label>FL (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="bFL" type="number" min="0" step="0.01" placeholder="25.8"></div>
+          </div>
+          <div class="tyre-rl">
+            <label>RL (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="bRL" type="number" min="0" step="0.01" placeholder="25.2"></div>
+          </div>
+          <div class="tyre-rr">
+            <label>RR (<span data-u="pressure">psi</span>)</label>
+            <div class="input"><input id="bRR" type="number" min="0" step="0.01" placeholder="25.2"></div>
+          </div>
+        </div>
+        <div class="car-hint">Top row is front axle (FR | FL), bottom row is rear axle (RL | RR). FL is <strong>top‑right</strong>.</div>
+
+        <div class="split" style="margin-top:12px">
+          <div class="col-6"><label>Brake ducts before</label><div class="input"><input id="bdBefore" type="number" step="1" placeholder="3"></div></div>
+          <div class="col-6"><label>Brake ducts after</label><div class="input"><input id="bdAfter" type="number" step="1" placeholder="2"></div></div>
+        </div>
+        <div class="btns">
+          <button class="primary" id="btnBrake">Calculate pressures</button>
+          <button class="secondary" id="btnBrakeReset">Reset</button>
+        </div>
+
+        <div id="brake-summary" class="stats" role="group" aria-label="Brake‑duct summary" style="display:none">
+          <div class="stat"><strong><span id="bd-delta">0</span></strong><small>Δ Setting</small></div>
+          <div class="stat"><strong><span id="bd-pdelta">0.00</span> <span data-u="pressure">psi</span></strong><small>Δ Pressure / tyre</small></div>
+          <div class="stat"><strong><span id="bd-status">–</span></strong><small>Status</small></div>
+          <div class="stat"><strong><span id="bd-note">1×</span></strong><small>Applied to all tyres</small></div>
+        </div>
+        <div id="brake-tyre-grid" class="tyre-grid" style="display:none">
+          <div class="tyre-fr stat"><strong><span id="bd-fr">0.00</span> <span data-u="pressure">psi</span></strong><small>FR</small></div>
+          <div class="tyre-fl stat"><strong><span id="bd-fl">0.00</span> <span data-u="pressure">psi</span></strong><small>FL</small></div>
+          <div class="tyre-rl stat"><strong><span id="bd-rl">0.00</span> <span data-u="pressure">psi</span></strong><small>RL</small></div>
+          <div class="tyre-rr stat"><strong><span id="bd-rr">0.00</span> <span data-u="pressure">psi</span></strong><small>RR</small></div>
+        </div>
+        <div id="outBrake" class="result" role="status" aria-live="polite"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <div class="footer-inner">© 2025 LC Race Tech Assistant • All calculations are best‑effort estimates.</div>
+  </footer>
+</body>
+</html>
