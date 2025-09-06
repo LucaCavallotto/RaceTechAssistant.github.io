@@ -10,32 +10,47 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     :root{
-      --bg-1:#0e0f13;      /* page */
-      --bg-2:#171922;      /* panels */
-      --bg-3:#1f2330;      /* tiles */
-      --border:#2a2f3f;    /* borders */
-      --text:#f3f7fb;      /* main text (BRIGHTER) */
-      --muted:#c7cfde;     /* muted text (BRIGHTER) */
-      --brand:#ff2a26;     /* accent */
+      --bg-1:#0e0f13;
+      --bg-2:#171922;
+      --bg-3:#1f2330;
+      --border:#2a2f3f;
+      --text:#f3f7fb;
+      --muted:#c7cfde;
+      --brand:#ff2a26;
       --ok:#9cf08a;
       --err:#ff9a9a;
       --radius:14px;
       --shadow:0 10px 30px rgba(0,0,0,.28);
+
+      /* Results layout tokens */
+      --gap-results:16px;
+      --card-pad:14px;
+      --card-min:84px;
+
+      /* Navbar overlay height (computed via JS) */
+      --navH:56px;
+
+      /* Columns */
+      --col-min-desktop:160px;
+      --col-min-tablet:150px;
+      --col-min-mobile:140px;
     }
+
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
       margin:0; min-height:100vh; display:flex; flex-direction:column;
       font:16px/1.5 Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       color:var(--text);
-      background:radial-gradient(1000px 500px at 0% -10%, #151826 0%, transparent 60%),
-                 radial-gradient(900px 600px at 110% 0%, #121522 0%, transparent 60%),
-                 var(--bg-1);
+      background:
+        radial-gradient(1000px 500px at 0% -10%, #151826 0%, transparent 60%),
+        radial-gradient(900px 600px at 110% 0%, #121522 0%, transparent 60%),
+        var(--bg-1);
       -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
     a{color:inherit;text-decoration:none}
 
-    /* Improve default Bootstrap contrasts inside dark panels */
+    /* Improve Bootstrap contrasts in dark panels */
     .card, .card * { color: inherit; }
     .text-muted, .text-body-secondary { color: var(--muted)!important; }
 
@@ -43,7 +58,6 @@
     .navbar{background:rgba(15,17,24,.75)!important; backdrop-filter:saturate(140%) blur(8px)}
     .navbar.navbar-dark .navbar-toggler-icon{filter: invert(1) grayscale(100%)}
     .brand{display:flex;align-items:center;gap:10px;font-weight:700}
-    .brand-dot{width:10px;height:10px;border-radius:999px;background:var(--brand)}
     .nav-link.btn{color:var(--muted)}
     .nav-link.btn.active, .nav-link.btn:focus{color:var(--text); background:linear-gradient(180deg,#1d2231,#121725); border-radius:999px}
 
@@ -62,7 +76,7 @@
     .input input{
       flex:1;min-width:0;border:0;outline:0;background:transparent;color:var(--text);padding:10px 12px;font-size:14px
     }
-    .input input::placeholder{color:#9aa3b2; opacity:1} /* brighter placeholder */
+    .input input::placeholder{color:#9aa3b2; opacity:1}
     .unit{display:flex;align-items:center;padding:0 10px;background:#141828;border-left:1px solid var(--border);color:var(--muted);font-size:12px}
 
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
@@ -71,7 +85,7 @@
     button.secondary{background:#22263a}
     button:disabled{opacity:.6;cursor:not-allowed}
 
-    /* Result boxes + toasts */
+    /* Inline result box + toasts */
     .result{
       margin-top:10px;border:1px solid var(--border);background:#111420;border-radius:12px;
       padding:12px;white-space:pre-wrap;min-height:44px;display:none;color:var(--text)
@@ -84,157 +98,161 @@
     .mode-toggle button{padding:8px 12px;border:0;background:transparent;color:var(--muted);cursor:pointer}
     .mode-toggle button[aria-pressed="true"]{background:#1b2030;color:var(--text)}
 
-    /* Big highlight tile for start fuel */
+    /* Fuel start callout */
     .big-callout{display:none;margin-top:12px;padding:16px;border-radius:14px;border:1px solid #9e1917;background:linear-gradient(180deg,rgba(255,75,69,.15),rgba(217,42,38,.08));box-shadow:var(--shadow);text-align:center;color:var(--text)}
     .big-callout h4{margin:0 0 6px;font-size:18px;letter-spacing:.02em}
     .big-callout .liters{font-size:28px;font-weight:800;letter-spacing:.02em}
 
-    /* Highlighted style for pressure tyre cards (same as fuel callout) */
+    /* Tyre highlight */
     .tyre-highlight{
       border:1px solid #9e1917 !important;
       background:linear-gradient(180deg,rgba(255,75,69,.15),rgba(217,42,38,.08)) !important;
       box-shadow:var(--shadow);
     }
 
-    /* Tyre layout grid (FR | FL / RL | RR => FL is top-right) */
-    .tyre-grid{display:grid;gap:12px;grid-template-columns:1fr 1fr;grid-template-areas:'fr fl' 'rl rr';align-items:start}
+    /* Tyre layout in forms (FR | FL / RL | RR, FL top-right) */
+    .tyre-grid{display:grid;gap:16px;grid-template-columns:1fr 1fr;grid-template-areas:'fr fl' 'rl rr';align-items:start}
     .tyre-fl{grid-area:fl}
     .tyre-fr{grid-area:fr}
     .tyre-rl{grid-area:rl}
     .tyre-rr{grid-area:rr}
 
-    /* NEW: uniform stats grids for results */
+    /* Stats grid base */
     .stats-grid{
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
-      gap:12px;
+      gap:var(--gap-results);
     }
     .stat-card{
       background:var(--bg-3);
       border:1px solid var(--border);
       border-radius:12px;
       text-align:center;
-      padding:10px;
+      padding:var(--card-pad);
+      min-height:var(--card-min);
+      display:flex; flex-direction:column; justify-content:center; align-items:center;
     }
-    .stat-card strong{font-size:18px}
+    .stat-card strong{font-size:18px; margin-bottom:4px}
 
-    /* Small helper for inline unit text (kept bright) */
     .unit-inline{color:var(--text)}
 
     footer{border-top:1px solid var(--border);background:#0d0f15;color:var(--muted)}
-    /* Più spazio tra le box */
-    .tyre-grid{gap:16px}              /* era 12px */
-    .stats-grid{gap:16px}             /* era 12px */
-    .stat-card{padding:14px}          /* era 10px */
 
-    /* Wrapper: griglia "2x2 a sinistra + colonna a destra" */
-    .panel-stats-wrap{
-      display:grid;
-      grid-template-columns: 1fr 260px; /* sinistra 2x2, destra colonna fissa */
-      gap:16px;
-      align-items:start;
-    }
-    @media (max-width: 768px){
-      .panel-stats-wrap{
-        grid-template-columns: 1fr;    /* stack su mobile */
-      }
-    }
-
-    /* Colonna destra: stack verticale delle card */
-    .side-stats{
-      display:grid;
-      grid-auto-rows:minmax(82px,auto);
-      gap:16px;
-    }
-
-    /* Manteniamo il 2x2 per le gomme (FL top-right come da tua UI) */
-    .tyre-grid{
-      grid-template-columns: repeat(2, 1fr);
-      grid-template-areas:'fr fl' 'rl rr';
-    }
-    /* Spacing & grid for results: 2 rows × 4 cols (collapses on small screens) */
-    .results-row{
-      display:grid;
-      grid-template-columns: repeat(4, minmax(150px,1fr));
-      gap:18px;                           /* a bit more spacing */
-      align-items:stretch;
-    }
-    @media (max-width: 992px){
-      .results-row{ grid-template-columns: repeat(2, minmax(150px,1fr)); }
-    }
-
-    /* Emphasis for tyre cards (more visible than others) */
-    .tyre-card{
-      background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
-      border: 1px solid #3a4258;          /* brighter border */
-      box-shadow: 0 10px 30px rgba(0,0,0,.28), 0 0 0 1px rgba(255,255,255,.04) inset;
-    }
-    .tyre-card strong{ font-size:20px }   /* slightly larger number */
-
-    /* Summary cards keep a calmer style */
-    .summary-card{
-      background: var(--bg-2);
-      border: 1px solid var(--border);
-    }
-    /* Più spazio tra le box */
-    .tyre-grid{ gap:16px; }      /* prima 12px */
-    .stat-card{ padding:14px; }  /* prima 10px */
-
-    /* Layout risultati: sinistra 2x2 gomme, destra colonna riassunti */
-    .panel-stats-wrap{
-      display:grid;
-      grid-template-columns: 1fr 280px; /* sinistra elastica, destra fissa */
-      gap:18px;
-      align-items:start;
-    }
-    @media (max-width: 992px){
-      .panel-stats-wrap{
-        grid-template-columns: 1fr;      /* stack su tablet/mobile */
-      }
-    }
-
-    /* Colonna destra: cards in pila */
-    .side-stats{
-      display:grid;
-      grid-auto-rows:minmax(84px,auto);
-      gap:16px;
-    }
-
-    /* Gomme più “visibili” delle altre card */
+    /* Emphasis for tyre cards in results */
     .tyre-card{
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.025));
       border: 1px solid #3a4258;
       box-shadow: 0 10px 24px rgba(0,0,0,.25);
     }
     .tyre-card strong{ font-size:20px; }
-    /* Better phone layout: one column on very small screens */
-    @media (max-width: 576px){
-      .stats-grid{ grid-template-columns: 1fr; }
+
+    /* ===== Results layout: pressures above, summary below (uniform spacing) ===== */
+    .results-split{
+      display:grid;
+      grid-template-columns: 1fr;   /* sempre una colonna */
+      gap: var(--gap-results);
+    }
+    .tyre-2x2{
+      display:grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--gap-results);
+    }
+    .side-stats{
+      display:grid;
+      grid-auto-rows:minmax(84px,auto);
+      gap: var(--gap-results);
     }
 
-    /* Optional: make tyre highlights consistent height on mobile */
+    /* Uniform spacing between result groups */
+    #temp-wrap, #brake-wrap, #fuel-stats1, #fuel-stats2{ margin-top: var(--gap-results) !important; }
+
+    /* Keep tyres 2×2 also on phones in RESULTS */
     @media (max-width: 576px){
-      .stat-card{ min-height: 82px; }
+      #temp-tyre-grid.tyre-2x2,
+      #brake-tyre-grid.tyre-2x2{
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
+      :root{ --gap-results:14px; --card-min:80px; }
     }
-    /* Phone layout: each results row becomes a single column */
+
+    /* Forms responsiveness: tyre inputs become 1 col on phones */
     @media (max-width: 576px){
-      #temp-tyre-grid,
-      #temp-stats,
-      #brake-tyre-grid,
-      #brake-summary{
-        grid-template-columns: 1fr !important;  /* force 1 column */
-        gap: 14px;                               /* comfy spacing */
+      #panel-temp .tyre-grid,
+      #panel-brake .tyre-grid{
+        grid-template-columns: 1fr !important;
+        grid-template-areas:
+          'fr'
+          'fl'
+          'rl'
+          'rr' !important;
+        gap: 12px;
+      }
+      #panel-temp label, #panel-brake label{ font-size:12px; }
+      #panel-temp .input input, #panel-brake .input input{ font-size:16px; padding:10px 12px; min-width:0; }
+      #panel-temp .unit, #panel-brake .unit{ font-size:12px; padding:0 8px; }
+      #panel-temp .row.g-3, #panel-brake .row.g-3{ --bs-gutter-y:10px; }
+    }
+
+    /* Uniform columns for result blocks (Fuel/Temp/Brake summaries) */
+    @media (min-width: 992px){
+      #fuel-stats1, #fuel-stats2,
+      #temp-stats, #brake-summary{
+        display:grid;
+        grid-template-columns: repeat(4, minmax(var(--col-min-desktop), 1fr)) !important;
+      }
+    }
+    @media (max-width: 991.98px){
+      #fuel-stats1, #fuel-stats2,
+      #temp-stats, #brake-summary{
+        display:grid;
+        grid-template-columns: repeat(2, minmax(var(--col-min-tablet), 1fr)) !important;
+      }
+    }
+    @media (max-width: 575.98px){
+      #fuel-stats1, #fuel-stats2,
+      #temp-stats, #brake-summary{
+        display:grid;
+        grid-template-columns: repeat(2, minmax(var(--col-min-mobile), 1fr)) !important;
       }
     }
 
+    /* === Navbar toggler appearance (white) === */
+    .navbar .navbar-toggler{ border-color:#fff !important; }
+    .navbar .navbar-toggler:focus{ box-shadow:0 0 0 .25rem rgba(255,255,255,.25); }
+    .navbar .navbar-toggler-icon{
+      filter:none !important;
+      background-image:url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3E%3Cpath stroke='rgba(255,255,255,1)' stroke-width='2' stroke-linecap='round' d='M4 7h22M4 15h22M4 23h22'/%3E%3C/svg%3E") !important;
+    }
+
+    /* === Mobile navbar overlay (including .collapsing) === */
+    @media (max-width: 767.98px){
+      .navbar.sticky-top{ z-index:1060; }
+      .navbar .collapse.show,
+      .navbar .collapsing{
+        position: fixed;
+        top: var(--navH);
+        left: 0;
+        right: 0;
+        max-height: calc(100vh - var(--navH));
+        overflow: auto;
+        background: rgba(15,17,24,0.97);
+        border-top: 1px solid var(--border);
+        z-index: 1050;
+        padding: 12px 16px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.28);
+      }
+      .navbar .navbar-nav{ gap: 8px; }
+      .navbar .navbar-nav .nav-link.btn{ display:block; width:100%; text-align:left; border-radius:12px; }
+      .navbar.overlay-open{ border-bottom-color: transparent !important; }
+    }
   </style>
 </head>
-<body class="d-flex flex-column" >
-  <!-- Navbar with selector; expands on md+, collapses into hamburger on smaller -->
+<body class="d-flex flex-column">
+  <!-- Navbar with selector -->
   <nav class="navbar navbar-dark navbar-expand-md sticky-top border-bottom" aria-label="Primary">
     <div class="container">
       <a class="navbar-brand mx-md-0 mx-auto" href="#">
-        <span class="brand"><span class="brand-dot"></span><span>RaceTechAssistant</span></span>
+        <span class="brand"><span>RaceTechAssistant</span></span>
       </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#primaryNav" aria-controls="primaryNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -326,7 +344,7 @@
                 <div class="liters"><span id="start-fuel">0.0</span> <span data-u="volume">L</span></div>
               </div>
 
-              <!-- RESULTS in uniform grids -->
+              <!-- RESULTS -->
               <div id="fuel-stats1" class="stats-grid mt-2" role="group" aria-label="Fuel summary" style="display:none">
                 <div class="stat-card"><strong id="stat-pits">0</strong><div class="text-uppercase small" style="color:var(--muted)">Pitstops (calc)</div></div>
                 <div class="stat-card"><strong><span id="stat-laps">0</span> <span class="unit-inline">laps</span></strong><div class="text-uppercase small" style="color:var(--muted)">Total</div></div>
@@ -371,7 +389,6 @@
                   <div class="input w-100"><input id="pRR" type="number" min="0" step="0.01" placeholder="25.2"></div>
                 </div>
               </div>
-              <div class="car-hint" style="color:var(--muted)">Top row is front axle (FR | FL), bottom row is rear axle (RL | RR). FL is <strong>top-right</strong> as requested.</div>
 
               <div class="row g-3 mt-2">
                 <div class="col-12 col-md-6"><label>Ambient before</label><div class="input w-100"><input id="tBefore" type="number" step="0.1" placeholder="20"><span class="unit" data-u="temp">°C</span></div></div>
@@ -384,19 +401,49 @@
                 <button class="secondary" id="btnTempReset">Reset</button>
               </div>
 
-              <!-- Results -->
-              <div id="temp-tyre-grid" class="stats-grid mt-2" role="group" aria-label="Tyre pressures" style="display:none">
-                <div class="stat-card tyre-highlight"><strong><span id="tp-fl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong><div class="text-uppercase small" style="color:var(--muted)">FL</div></div>
-                <div class="stat-card tyre-highlight"><strong><span id="tp-fr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong><div class="text-uppercase small" style="color:var(--muted)">FR</div></div>
-                <div class="stat-card"><strong><span id="t-delta">0</span> <span class="unit-inline" data-u="temp">°C</span></strong><div class="text-uppercase small" style="color:var(--muted)">Δ Temperature</div></div>
-                <div class="stat-card"><strong><span id="p-delta">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong><div class="text-uppercase small" style="color:var(--muted)">Δ Pressure / tyre</div></div>
-              </div>
+              <!-- Results (Temperature → Pressure) -->
+              <div id="temp-wrap" class="results-split mt-2" style="display:none" role="group" aria-label="Temperature results">
+                <!-- Tyres 2×2 -->
+                <div>
+                  <div id="temp-tyre-grid" class="tyre-2x2" aria-label="Tyre pressures">
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="tp-fr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">FR</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="tp-fl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">FL</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="tp-rl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">RL</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="tp-rr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">RR</div>
+                    </div>
+                  </div>
+                </div>
 
-              <div id="temp-stats" class="stats-grid mt-1" role="group" aria-label="Pressure summary" style="display:none">
-                <div class="stat-card tyre-highlight"><strong><span id="tp-rl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong><div class="text-uppercase small" style="color:var(--muted)">RL</div></div>
-                <div class="stat-card tyre-highlight"><strong><span id="tp-rr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong><div class="text-uppercase small" style="color:var(--muted)">RR</div></div>
-                <div class="stat-card"><strong><span id="target-range">–</span></strong><div class="text-uppercase small" style="color:var(--muted)">Target Window</div></div>
-                <div class="stat-card"><strong><span id="press-ok">–</span></strong><div class="text-uppercase small" style="color:var(--muted)">Status</div></div>
+                <!-- Summary -->
+                <div id="temp-stats" class="side-stats" role="group" aria-label="Pressure summary">
+                  <div class="stat-card">
+                    <strong><span id="t-delta">0</span> <span class="unit-inline" data-u="temp">°C</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Δ Temperature</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="p-delta">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Δ Pressure / tyre</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="target-range">–</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Target Window</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="press-ok">–</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Status</div>
+                  </div>
+                </div>
               </div>
               <div id="outTemp" class="result" role="status" aria-live="polite"></div>
             </div>
@@ -427,7 +474,6 @@
                   <div class="input w-100"><input id="bRR" type="number" min="0" step="0.01" placeholder="25.2"></div>
                 </div>
               </div>
-              <div class="car-hint" style="color:var(--muted)">Top row is front axle (FR | FL), bottom row is rear axle (RL | RR). FL is <strong>top-right</strong>.</div>
 
               <div class="row g-3 mt-2">
                 <div class="col-12 col-md-6"><label>Brake ducts before</label><div class="input w-100"><input id="bdBefore" type="number" step="1" placeholder="3"></div></div>
@@ -437,49 +483,51 @@
                 <button class="primary" id="btnBrake">Calculate pressures</button>
                 <button class="secondary" id="btnBrakeReset">Reset</button>
               </div>
-              
+
               <!-- Results (Brake Ducts) -->
-              <!-- Results (Brake Ducts) -->
-              <!-- Tyres FIRST -->
-              <div id="brake-tyre-grid" class="stats-grid mt-2" role="group" aria-label="Tyre pressures (brake)" style="display:none">
-                <div class="stat-card tyre-highlight">
-                  <strong><span id="bd-fr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">FR</div>
+              <div id="brake-wrap" class="results-split mt-2" style="display:none" role="group" aria-label="Brake ducts results">
+                <!-- Tyres 2×2 -->
+                <div>
+                  <div id="brake-tyre-grid" class="tyre-2x2" aria-label="Tyre pressures (brake)">
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="bd-fr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">FR</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="bd-fl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">FL</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="bd-rl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">RL</div>
+                    </div>
+                    <div class="stat-card tyre-highlight">
+                      <strong><span id="bd-rr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                      <div class="text-uppercase small" style="color:var(--muted)">RR</div>
+                    </div>
+                  </div>
                 </div>
-                <div class="stat-card tyre-highlight">
-                  <strong><span id="bd-fl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">FL</div>
-                </div>
-                <div class="stat-card tyre-highlight">
-                  <strong><span id="bd-rl">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">RL</div>
-                </div>
-                <div class="stat-card tyre-highlight">
-                  <strong><span id="bd-rr">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">RR</div>
+
+                <!-- Summary -->
+                <div id="brake-summary" class="side-stats" role="group" aria-label="Brake-duct summary">
+                  <div class="stat-card">
+                    <strong id="bd-delta">0</strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Δ Setting</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="bd-pdelta">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Δ Pressure / tyre</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="bd-status">–</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Status</div>
+                  </div>
+                  <div class="stat-card">
+                    <strong><span id="bd-note">1×</span></strong>
+                    <div class="text-uppercase small" style="color:var(--muted)">Applied to all tyres</div>
+                  </div>
                 </div>
               </div>
-
-              <!-- Summary SECOND -->
-              <div id="brake-summary" class="stats-grid mt-1" role="group" aria-label="Brake-duct summary" style="display:none">
-                <div class="stat-card">
-                  <strong id="bd-delta">0</strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">Δ Setting</div>
-                </div>
-                <div class="stat-card">
-                  <strong><span id="bd-pdelta">0.00</span> <span class="unit-inline" data-u="pressure">psi</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">Δ Pressure / tyre</div>
-                </div>
-                <div class="stat-card">
-                  <strong><span id="bd-status">–</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">Status</div>
-                </div>
-                <div class="stat-card">
-                  <strong><span id="bd-note">1×</span></strong>
-                  <div class="text-uppercase small" style="color:var(--muted)">Applied to all tyres</div>
-                </div>
-              </div>
-
               <div id="outBrake" class="result" role="status" aria-live="polite"></div>
             </div>
           </article>
@@ -502,8 +550,8 @@
     const num = id => parseFloat(document.getElementById(id).value);
     const val = id => document.getElementById(id).value;
 
-    const showGrid = id => document.getElementById(id).style.display='grid';
-    const hide = id => document.getElementById(id).style.display='none';
+    const showGrid  = id => document.getElementById(id).style.display='grid';
+    const hide      = id => document.getElementById(id).style.display='none';
     const showBlock = id => document.getElementById(id).style.display='block';
     const showResult=(id,html)=>{const el=document.getElementById(id); el.style.display='block'; el.innerHTML=html};
     const hideResult=id=>{const el=document.getElementById(id); el.style.display='none'; el.innerHTML=''};
@@ -522,7 +570,7 @@
       }catch(e){ alert('Copy failed'); }
     }
 
-    // ------- Header title/desc per tab -------
+    // Header title/desc per tab
     const pageTitle = document.getElementById('pageTitle');
     const pageDesc  = document.getElementById('pageDesc');
     function setHeaderFor(tab){
@@ -538,7 +586,7 @@
       }
     }
 
-    // ------- Tabs logic via navbar buttons -------
+    // Tabs logic
     const tabs = [
       {btn:'tab-fuel', panel:'panel-fuel'},
       {btn:'tab-temp', panel:'panel-temp'},
@@ -563,7 +611,7 @@
     // Init header labels
     setHeaderFor('tab-fuel');
 
-    // ------- Fuel: mode toggle -------
+    // Fuel: mode toggle
     const normalBtn = document.getElementById('mode-normal');
     const proBtn = document.getElementById('mode-pro');
     const normalForm = document.getElementById('fuel-form-normal');
@@ -581,7 +629,7 @@
     normalBtn.addEventListener('click', ()=>setMode('normal'));
     proBtn.addEventListener('click', ()=>setMode('pro'));
 
-    // ------- Fuel calc (both modes) -------
+    // Fuel calc
     function readFuelInputs(){
       const isPro = proBtn.getAttribute('aria-pressed')==='true';
       const read = (id, def=0)=>{ const v = parseFloat(val(id)); return isNaN(v)? def : v; };
@@ -614,7 +662,7 @@
         return;
       }
 
-      const fuelLapL = inp.fuelLap; // metric only
+      const fuelLapL = inp.fuelLap;
       const tankL    = inp.tank;
 
       const raceSeconds = (inp.raceH*3600) + (inp.raceM*60);
@@ -633,7 +681,7 @@
       // Optional laps
       let totalLaps = raceLaps; if (inp.includeFormation) totalLaps += 1; if (inp.includeCooldown)  totalLaps += 1;
 
-      // Base total fuel (liters)
+      // Base total fuel
       let totalFuelL = totalLaps * fuelLapL;
 
       // Mandatory stops: pit-in lap ~90% consumption
@@ -684,50 +732,66 @@ Start fuel: ${fuelDisplay(startFuelL)} L`;
     });
     document.getElementById('btnFuelCopy').addEventListener('click', ()=> copyText(lastFuelSummary));
 
-    // ------- Temp → Pressure -------
+    // Temp → Pressure
     function calcTemp(){
       const pFR = num('pFR'); const pFL = num('pFL'); const pRL = num('pRL'); const pRR = num('pRR');
       const tBefore = num('tBefore'); const tAfter  = num('tAfter');
       const tMin = num('targetMin'); const tMax = num('targetMax');
 
-      if ([pFR,pFL,pRL,pRR,tBefore,tAfter].some(v=>Number.isNaN(v))){ hide('temp-stats'); hide('temp-tyre-grid'); showResult('outTemp','❌ <span class="err">Please fill in all fields (targets optional).</span>'); return; }
+      if ([pFR,pFL,pRL,pRR,tBefore,tAfter].some(v=>Number.isNaN(v))){ 
+        hide('temp-wrap'); 
+        showResult('outTemp','❌ <span class="err">Please fill in all fields (targets optional).</span>'); 
+        return; 
+      }
 
       const dT = tAfter - tBefore; // °C
       const dP = 0.1 * dT; // psi per °C
-      const corrected = [pFL, pFR, pRL, pRR].map(v=>round(v + dP,2)); // FL,FR,RL,RR in psi
+      const corrected = [pFL, pFR, pRL, pRR].map(v=>round(v + dP,2)); // FL,FR,RL,RR
 
-      // Per-tyre grid
+      // Update tyres
       document.getElementById('tp-fl').textContent = corrected[0];
       document.getElementById('tp-fr').textContent = corrected[1];
       document.getElementById('tp-rl').textContent = corrected[2];
       document.getElementById('tp-rr').textContent = corrected[3];
 
-      // Summary tiles
+      // Summary
       document.getElementById('t-delta').textContent = round(dT,1);
       document.getElementById('p-delta').textContent = round(dP,2);
       document.getElementById('target-range').textContent = (!Number.isNaN(tMin) && !Number.isNaN(tMax))? `${tMin}–${tMax} psi` : '—';
 
-      let status = '—'; if (!Number.isNaN(tMin) && !Number.isNaN(tMax)){ const allOk = corrected.every(v=>v>=tMin && v<=tMax); status = allOk? 'Within window' : 'Adjust needed'; }
+      let status = '—'; 
+      if (!Number.isNaN(tMin) && !Number.isNaN(tMax)){ 
+        const allOk = corrected.every(v=>v>=tMin && v<=tMax); 
+        status = allOk? 'Within window' : 'Adjust needed'; 
+      }
       document.getElementById('press-ok').textContent = status;
 
-      hideResult('outTemp'); showGrid('temp-stats'); showGrid('temp-tyre-grid');
+      hideResult('outTemp'); 
+      showGrid('temp-wrap');      // wrapper
+      showGrid('temp-stats');     // summary grid
+      showGrid('temp-tyre-grid'); // tyres grid
     }
     document.getElementById('btnTemp').addEventListener('click', calcTemp);
     document.getElementById('btnTempReset').addEventListener('click', ()=>{
       ['pFL','pFR','pRL','pRR','tBefore','tAfter','targetMin','targetMax'].forEach(id=>document.getElementById(id).value='');
       ['t-delta','p-delta','target-range','press-ok'].forEach(id=>document.getElementById(id).textContent='0');
       document.getElementById('press-ok').textContent='—'; document.getElementById('target-range').textContent='—';
-      hide('temp-stats'); hide('temp-tyre-grid'); hideResult('outTemp');
+      hide('temp-wrap'); hideResult('outTemp');
     });
 
-    // ------- Brake ducts → Pressure -------
+    // Brake ducts → Pressure
     function calcBrake(){
       const pFL = num('bFL'); const pFR = num('bFR'); const pRL = num('bRL'); const pRR = num('bRR');
       const bdBefore = num('bdBefore'); const bdAfter  = num('bdAfter');
 
-      if ([pFL,pFR,pRL,pRR,bdBefore,bdAfter].some(v=>Number.isNaN(v))){ hide('brake-summary'); hide('brake-tyre-grid'); showResult('outBrake','❌ <span class=\"err\">Please fill in all fields.</span>'); return; }
+      if ([pFL,pFR,pRL,pRR,bdBefore,bdAfter].some(v=>Number.isNaN(v))){ 
+        hide('brake-wrap'); 
+        showResult('outBrake','❌ <span class=\"err\">Please fill in all fields.</span>'); 
+        return; 
+      }
 
-      const dBD = bdAfter - bdBefore; const dP = 0.2 * dBD;
+      const dBD = bdAfter - bdBefore; 
+      const dP = 0.2 * dBD;
 
       document.getElementById('bd-delta').textContent = dBD;
       document.getElementById('bd-pdelta').textContent = round(dP,2);
@@ -740,14 +804,54 @@ Start fuel: ${fuelDisplay(startFuelL)} L`;
       document.getElementById('bd-rl').textContent = corrected[2];
       document.getElementById('bd-rr').textContent = corrected[3];
 
-      hideResult('outBrake'); showGrid('brake-summary'); showGrid('brake-tyre-grid');
+      hideResult('outBrake'); 
+      showGrid('brake-wrap');     
+      showGrid('brake-summary');  
+      showGrid('brake-tyre-grid');
     }
     document.getElementById('btnBrake').addEventListener('click', calcBrake);
     document.getElementById('btnBrakeReset').addEventListener('click', ()=>{
       ['bFL','bFR','bRL','bRR','bdBefore','bdAfter'].forEach(id=>document.getElementById(id).value='');
       ['bd-delta','bd-pdelta','bd-status','bd-note'].forEach(id=>document.getElementById(id).textContent='0');
-      document.getElementById('bd-status').textContent='—'; hide('brake-summary'); hide('brake-tyre-grid'); hideResult('outBrake');
+      document.getElementById('bd-status').textContent='—'; 
+      hide('brake-wrap'); hideResult('outBrake');
     });
+
+    // Auto-collapse hamburger when selecting a nav item
+    (function(){
+      const navCollapseEl = document.getElementById('primaryNav');
+      if(!navCollapseEl) return;
+      const bsCollapse = new bootstrap.Collapse(navCollapseEl, { toggle: false });
+      navCollapseEl.addEventListener('click', (e)=>{
+        const clickedItem = e.target.closest('.nav-link');
+        if(clickedItem && window.getComputedStyle(navCollapseEl).display !== 'none'){
+          bsCollapse.hide();
+        }
+      });
+    })();
+
+    // Navbar mobile overlay: compute height and update CSS var
+    (function(){
+      const nav = document.querySelector('.navbar');
+      if(!nav) return;
+      function setNavH(){
+        const h = nav.getBoundingClientRect().height;
+        document.documentElement.style.setProperty('--navH', `${Math.round(h)}px`);
+      }
+      window.addEventListener('load', setNavH);
+      window.addEventListener('resize', setNavH);
+      window.addEventListener('orientationchange', setNavH);
+      setNavH();
+    })();
+
+    // Toggle class to hide navbar border when overlay menu is open
+    (function(){
+      const nav = document.querySelector('.navbar');
+      const collapseEl = document.getElementById('primaryNav');
+      if(!nav || !collapseEl) return;
+      collapseEl.addEventListener('show.bs.collapse', ()=> nav.classList.add('overlay-open'));
+      collapseEl.addEventListener('hidden.bs.collapse', ()=> nav.classList.remove('overlay-open'));
+    })();
   </script>
 </body>
 </html>
